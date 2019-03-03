@@ -37,6 +37,18 @@ int generateMonsters(player Player1);
 	
 int main()
 {
+	weapon machette;
+	machette.weaponName = "Machette";
+	machette.hitPoints = 12;
+	weapon knife;
+	knife.weaponName = "Knife";
+	knife.hitPoints = 4;
+	weapon sword;
+	sword.weaponName = "Sword";
+	sword.hitPoints = 16;
+	weapon pistol;
+	pistol.weaponName = "Pistol";
+	pistol.hitPoints = 25;
 	mainMenu();
 	
 	return 0;
@@ -107,6 +119,7 @@ void playGame(player Player1)								//plays the game with the player informatio
 			if (doorChoice == "left" || doorChoice == "Left") {
 				roomNum++;
 				Room.set_name(std::to_string(roomNum));
+
 				roll = diceRoll(0, 2);
 				if(roll == 0){
 					cout << "DEAD" << endl;
@@ -164,7 +177,9 @@ void playGame(player Player1)								//plays the game with the player informatio
 	}
 	
 	cout << "You see a ray of light coming from an open window... you are able to escape!" << endl;
+
 	return;		
+
 }
 
 int generateMonsters(player Player1)							//creates a random number of enemies and iterates through them to fight individually 
@@ -275,3 +290,4 @@ int diceRoll(int a, int b){
 	roll =(rand() % b) + a;	
 	return roll;
 }
+
