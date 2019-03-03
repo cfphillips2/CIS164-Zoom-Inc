@@ -32,17 +32,17 @@ using namespace std;
 	}
 
 	int Monster::setInitialHitPoints() {
-		// Randomly generataes a number from 1 to 3
-		random_device rd;
-		mt19937 gen(rd());
-		uniform_int_distribution<> dis(1, 3);
-		return dis(gen);
+		// Randomly generataes a number from 1 to 15
+		int roll;
+		srand(time(NULL));
+		roll = (rand() % 15) + 1;	
+		return roll;
 	}
 
 	int Monster::setAttackPower() {
-		// Randomly generataes a number from 1 to 2
-		random_device rd;
-		mt19937 gen(rd());
-		uniform_int_distribution<> dis(1, 10);
-		return dis(gen);
+		// Randomly generataes a number from 1 to 15
+		int roll;
+		srand(time(NULL));
+		roll = (rand() % 15) + 1;	
+		return roll;
 	}

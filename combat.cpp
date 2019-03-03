@@ -58,6 +58,8 @@ int combat(Monster monster, player Player1) {
 	}
 	if (Player1.getHitPoints() <= 0) {
 		cout << "You've died of dysentery" << endl;
+		Player1.setHitPoints(0);
+		return 0;
 	}
 	else {
 		cout << "You are victorious" << endl;

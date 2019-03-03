@@ -2,6 +2,7 @@
 //Created by Carl Phillips
 
 #include <iostream>
+#include <ctime>
 
 //including class files
 #include "weapon.h"	
@@ -17,10 +18,11 @@ using namespace std;
 
 //function declarations
 int mainMenu();
+int diceRoll(int, int);
 void createPlayer();
 void playGame(player Player1);
 void roomWeapons(player Player1);
-void generateMonsters(player Player1);
+int generateMonsters(player Player1);
 
 	Weapon currentWeapon;					//this changes to current weapon held by the user
 	
@@ -77,7 +79,7 @@ void createPlayer()											//gets a player name for the users character
 void playGame(player Player1)								//plays the game with the player information
 {
 	//dialog Dialog;
-	room Room("First Room");
+	room Room("104");
 	cout << "Welcome to your first day of school " << Player1.getName() << ". Take your bag and meet in room 104." << endl;
 	
 	cout << "You wake up on the floor of room 104. It is dark, the room is a mess, there is a door on the right, and the left." << endl;
@@ -87,57 +89,108 @@ void playGame(player Player1)								//plays the game with the player informatio
 	currentWeapon.descWeapon();
 	string doorChoice;								
 	
-	while(Room.get_name() != "300") {								//while the player is not in the last room, continue on
+	while(Room.get_name() != "110") {								//while the player is not in the last room, continue on
 		Player1.setAttackPower(currentWeapon.getDamage());			//sets how much damage the player will do based on the weapon
 		Room.roomInfo(Room);										//displays the info of the room
-		
-		generateMonsters(Player1);									//sends to combat
-		
-		
+		Player1.setHitPoints(generateMonsters(Player1));									//sends to combat
+		if(Player1.getHitPoints() <= 0) {
+			cout << "DEAD" << endl;
+			return;
+		}
 		roomWeapons(Player1);										//after combat in the new room there will be weapons to choose from
+		int roomNum = 104;
+		int roll;
 		
 		do {														//decides which way the user will go to continue through the map, this will change when the search tree is done
 			cout << "There is a door on your left and one on your right. Which way will you go?" << endl;
 			cin >> doorChoice;
 			if (doorChoice == "left" || doorChoice == "Left") {
-				//stack.push(node);
-				//node = node.left;
-				cout << "\nDEAD";
-				return;
-			} else if (doorChoice == "right" || doorChoice == "Right") {
-				//stack.push(node);
-				//node = node.right;
-				Room.set_name("Next Room");
-			} else {
+				roomNum++;
+				Room.set_name(std::to_string(roomNum));
+				roll = diceRoll(0, 2);
+				if(roll == 0){
+					cout << "DEAD" << endl;
+					return;
+				}
+				else if(roll == 1){
+					Room.roomInfo(Room);
+					Player1.setHitPoints(generateMonsters(Player1));
+					if(Player1.getHitPoints() <= 0) {
+						cout << "DEAD" << endl;
+						return;
+					}
+					roomWeapons(Player1);
+				}
+				else if(roll == 2){
+					Room.roomInfo(Room);
+					cout << "The room smells faintly of banana. You find nothing.";
+				}
+			} 
+			else if (doorChoice == "right" || doorChoice == "Right") {
+				if(Room.get_name() == "101"){ // If player tries to go right after room 101
+					doorChoice = "Wrong"; 	  // They are unable to since rooms start at 101
+				}
+				else{
+					roomNum--;
+					Room.set_name(std::to_string(roomNum));
+					roll = diceRoll(0, 2);
+					if(roll == 0){
+						cout << "DEAD" << endl;
+						return ;
+					}
+					else if(roll == 1){
+						Room.roomInfo(Room);
+						Player1.setHitPoints(generateMonsters(Player1));
+						if(Player1.getHitPoints() <= 0) {
+							cout << "DEAD" << endl;
+							return;
+						}
+						roomWeapons(Player1);
+					}
+					else if(roll == 2){
+						Room.roomInfo(Room);
+						cout << "All there is in this room is the sound of silence." << endl;
+					}
+				}
+			} 
+			else {
 				doorChoice = "Wrong";
 			}
-		} while (doorChoice == "Wrong");						//if neither are chosen you will be asked to choose again
+			
+			if(Player1.getHitPoints() <= 0) {
+				return;
+			}
+		} while (doorChoice == "Wrong");						//if neither are chosen you will be asked to choose again	
 	}
+	
+	cout << "You see a ray of light coming from an open window... you are able to escape!" << endl;
+	return;		
 }
 
-void generateMonsters(player Player1)							//creates a random number of enemies and iterates through them to fight individually 
+int generateMonsters(player Player1)							//creates a random number of enemies and iterates through them to fight individually 
 {																//will 
-	random_device rd;	
-	mt19937 gen(rd());
-	uniform_int_distribution<> dis(1, 4);						//random number of monsters
-	int numOfMonsters = dis(gen);
+		
+	int numOfMonsters = diceRoll(1, 5);								//random number of monsters
 	for(int i = 0; i < numOfMonsters; i++){
-		Monster Enemy;
-		Enemy.setAttackPower();									//random attack power
-		Enemy.setHitPoints(5);								
-		cout << "A Monster appears.  Health: " << Enemy.getHitPoints() << " Damage: " << Enemy.getAttackPower() << endl;
-		Player1.getAttackPower();
-		Player1.setHitPoints(combat(Enemy, Player1));			//goes into combat, when returned the player will have different health
+		if(Player1.getHitPoints() <= 0) {
+			return Player1.getHitPoints();
+		} else {
+			Monster Enemy;
+			Enemy.setAttackPower();									//random attack power
+			Enemy.setHitPoints(diceRoll(1, 15));								
+			cout << "A Monster appears.  Health: " << Enemy.getHitPoints() << " Damage: " << Enemy.getAttackPower() << endl;
+			Player1.getAttackPower();
+			Player1.setHitPoints(combat(Enemy, Player1));			//goes into combat, when returned the player will have different health
+		
+		}
 	}
+	return Player1.getHitPoints();
 }
 
 void roomWeapons(player Player1)							//shows available weapons to pick up in the room
 {															//this will be more random and have more variety
 	string weaponChoice = "again";
-	random_device rd;	
-	mt19937 gen(rd());
-	uniform_int_distribution<> dis(1, 4);						//random number of monsters
-	int caseWeapons = dis(gen);						//random number for weapons, sometimes you dont get to choose
+	int caseWeapons = diceRoll(1, 4);						//random number for weapons, sometimes you dont get to choose
 	while (weaponChoice == "again") {							//checks if the input was incorrect
 		switch(caseWeapons) {
 			case 1: 
@@ -146,6 +199,7 @@ void roomWeapons(player Player1)							//shows available weapons to pick up in t
 				pistol.descWeapon();							//shows two weapons you can pick up
 				cout << "Weapon Choice: ";
 				cin >> weaponChoice;
+				cin.ignore(weaponChoice.length(), '\n');
 				if (weaponChoice == "Machette" || weaponChoice == "machette"){
 					cout << "You have dropped " << currentWeapon.getWeaponName() << " and picked up " << weaponChoice << endl;
 					currentWeapon = machette;					//will set the current weapon
@@ -156,12 +210,14 @@ void roomWeapons(player Player1)							//shows available weapons to pick up in t
 					cout << "\nThat is not a weapon, please pick a weapon.\n" << endl;
 					weaponChoice = "again";
 				}
+				break;
 			case 2:
 				cout << "Available Weapons to pick up: " << endl;
 				knife.descWeapon();
 				sword.descWeapon();
 				cout << "Weapon Choice: ";
 				cin >> weaponChoice;
+				cin.ignore(weaponChoice.length(), '\n');
 				if (weaponChoice == "Knife" || weaponChoice == "knife"){
 					cout << "You have dropped " << currentWeapon.getWeaponName() << " and picked up " << weaponChoice << endl;
 					currentWeapon = knife;
@@ -172,12 +228,14 @@ void roomWeapons(player Player1)							//shows available weapons to pick up in t
 					cout << "\nThat is not a weapon, please pick a weapon.\n" << endl;
 					weaponChoice = "again";
 				}
+				break;
 			case 3:
 				cout << "Available Weapons to pick up: " << endl;
 				axe.descWeapon();
 				spear.descWeapon();
 				cout << "Weapon Choice: ";
 				cin >> weaponChoice;
+				cin.ignore(weaponChoice.length(), '\n');
 				if (weaponChoice == "Axe" || weaponChoice == "axe"){
 					cout << "You have dropped " << currentWeapon.getWeaponName() << " and picked up " << weaponChoice << endl;
 					currentWeapon = axe;
@@ -188,12 +246,14 @@ void roomWeapons(player Player1)							//shows available weapons to pick up in t
 					cout << "\nThat is not a weapon, please pick a weapon.\n" << endl;
 					weaponChoice = "again";
 				}
+				break;
 			case 4:
 				cout << "Available Weapons to pick up: " << endl;
 				musket.descWeapon();
 				lazergun.descWeapon();
 				cout << "Weapon Choice: ";
 				cin >> weaponChoice;
+				cin.ignore(weaponChoice.length(), '\n');
 				if (weaponChoice == "Lazer" || weaponChoice == "lazer" || weaponChoice == "Lazer Gun" || weaponChoice == "lazer gun" || weaponChoice == "lazergun" || weaponChoice == "Lazergun"){
 					cout << "You have dropped " << currentWeapon.getWeaponName() << " and picked up " << weaponChoice << endl;
 					currentWeapon = lazergun;
@@ -204,6 +264,14 @@ void roomWeapons(player Player1)							//shows available weapons to pick up in t
 					cout << "\nThat is not a weapon, please pick a weapon.\n" << endl;
 					weaponChoice = "again";
 				}
+				break;
 		}
 	}
+}
+
+int diceRoll(int a, int b){
+	int roll;
+	srand(time(NULL));
+	roll =(rand() % b) + a;	
+	return roll;
 }
